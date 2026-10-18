@@ -72,19 +72,46 @@ textarea{width:100%;background:var(--card);border:1px solid var(--line);color:va
 @media (prefers-color-scheme:dark){:root[data-vibe="boy"]:not([data-theme="light"]){--bg:#0a1020;--bg2:#0f2a52}:root[data-vibe="other"]:not([data-theme="light"]){--bg:#0d1a1a;--bg2:#123533}}
 :root[data-vibe="boy"][data-theme="dark"]{--bg:#0a1020;--bg2:#0f2a52}:root[data-vibe="other"][data-theme="dark"]{--bg:#0d1a1a;--bg2:#123533}
 #cmsgs .task{padding:6px 0}
+
+.toast{z-index:60}
+.ringwrap{width:min(60vw,250px);margin:4px auto 18px}.has3d #plant{display:none}
+#stage{height:190px;touch-action:pan-y;cursor:grab;margin:-4px 0 0}#stage canvas{width:100%;height:100%;display:block}
+#fab{position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--b);color:#1b1020;font-size:25px;z-index:25;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+#bd{position:absolute;top:-3px;right:-3px;background:#ff4d6d;color:#fff;border-radius:99px;font:700 11px 'DM Sans';padding:2px 7px;display:none}
+#panel{position:fixed;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));width:min(92vw,350px);height:min(480px,62vh);display:none;flex-direction:column;z-index:26;background:var(--bg);border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 14px 50px rgba(0,0,0,.45)}
+#panel.on{display:flex}
+#panel.max{inset:0;width:auto;height:auto;border-radius:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--card)}
+.mb{max-width:82%;padding:8px 13px;border-radius:18px;background:var(--card);margin:6px 0;border:1px solid var(--line);word-break:break-word}
+.mb.me{margin-left:auto;background:var(--a);color:var(--on);border-color:transparent}.mb small{display:block;opacity:.7;font-size:11px}
+:root[data-vibe="boy"] .card,:root[data-vibe="boy"] .stat,:root[data-vibe="boy"] .drop,:root[data-vibe="boy"] .fc,:root[data-vibe="boy"] .ob button{border-radius:12px}
+:root[data-vibe="boy"] .btn,:root[data-vibe="boy"] .chip,:root[data-vibe="boy"] .modes,:root[data-vibe="boy"] .modes button,:root[data-vibe="boy"] input[type=text],:root[data-vibe="boy"] select{border-radius:10px}
+:root[data-vibe="boy"] nav{border-radius:16px}:root[data-vibe="boy"] #panel{border-radius:14px}:root[data-vibe="boy"] .mb{border-radius:10px}
+:root[data-vibe="boy"] h1,:root[data-vibe="boy"] .big{text-transform:uppercase;letter-spacing:.01em}
+:root[data-vibe="boy"] #prog{filter:drop-shadow(0 0 8px var(--a));stroke-linecap:butt}
+:root[data-vibe="boy"] body{background-image:linear-gradient(rgba(77,163,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(77,163,255,.06) 1px,transparent 1px),radial-gradient(900px 500px at 85% -10%,var(--bg2),transparent 60%);background-size:32px 32px,32px 32px,auto}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
-<div class="ob" id="ob"><h1 style="font-size:32px">Pick your vibe</h1><p class="hi" style="margin:0 0 8px">This sets your colors and rewards. You can change it later in Me.</p>
-<button data-v="girl">👧 Girl</button><button data-v="boy">👦 Boy</button><button data-v="other">✨ Skip / neutral</button></div>
+<div class="ob" id="ob"><h1 style="font-size:32px">Create your profile</h1><p class="hi" style="margin:0 0 4px">Your choice sets the layout, colors and 3D rewards. Change it any time in Me.</p>
+<input type="text" id="sn" placeholder="Your name" maxlength="20">
+<button data-v="girl">👧 I am a girl</button><button data-v="boy">👦 I am a boy</button><button data-v="other">✨ Skip / neutral</button></div>
+<button id="fab" aria-label="Open chat">💬<span id="bd"></span></button>
+<div id="panel"><div class="ph"><b id="pt">Study chat</b><span><button class="x" id="pv" aria-label="Video call">📹</button><button class="x" id="pm" aria-label="Enlarge">⤢</button><button class="x" id="pc" aria-label="Close">✕</button></span></div>
+<div id="pj" style="padding:16px"><input type="text" id="jn" placeholder="Your name"><input type="text" id="jc" placeholder="Friend code (same on both phones)" style="margin-top:8px"><button class="btn" id="jb" style="width:100%;margin-top:12px">Join chat</button><p class="hi" style="font-size:13px">Pick any secret code and share it with your friend.</p></div>
+<div id="cmsgs" style="flex:1;overflow:auto;padding:6px 14px"></div>
+<div class="row" id="cbar" style="padding:10px;border-top:1px solid var(--line)"><input type="text" id="cin" placeholder="Message"><button class="btn" id="csend" style="padding:13px 20px">➤</button></div></div>
 <div id="vid" style="display:none;position:fixed;inset:0;z-index:40;background:#000;flex-direction:column"><video id="rv" autoplay playsinline style="flex:1;width:100%;object-fit:cover;min-height:0"></video><video id="lv" autoplay playsinline muted style="position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top,0px));width:100px;border-radius:16px"></video><button class="btn" id="hang" style="margin:16px auto calc(24px + env(safe-area-inset-bottom,0px));background:#ff5d5d;color:#fff">End call</button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <main>
 <section id="focus" class="on">
   <h1 id="greet">Let’s bloom 🌱</h1>
   <p class="hi" id="sub">Pick a task, hit start, grow your plant.</p>
+  <div class="card" id="hud" style="display:none"></div>
   <div class="modes" id="modes"></div>
+  <div id="stage"></div>
   <div class="ringwrap">
     <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="90" stroke="var(--line)"/><circle id="prog" cx="100" cy="100" r="90" stroke-dasharray="565.5" stroke-dashoffset="0"/></svg>
     <div class="mid"><div class="plant" id="plant">🌱</div><div class="big" id="time">25:00</div><small style="color:var(--mut)" id="lab">focus</small></div>
@@ -129,7 +156,7 @@ textarea{width:100%;background:var(--card);border:1px solid var(--line);color:va
     <textarea id="fcin" rows="3" placeholder="Paste notes, one per line: Term: definition"></textarea><div class="row"><button class="btn ghost" id="fcmk">Make cards</button><button class="btn" id="fcgo">Review</button></div></div>
   <div class="card"><b>Study room</b><p class="hi" style="margin:4px 0 10px">Share a code with friends and see who is focusing.</p>
     <div class="row"><input type="text" id="rn" placeholder="Your name"><input type="text" id="rc" placeholder="Room code"></div>
-    <div class="row" style="margin:10px 0"><button class="btn" id="rj">Join</button></div><div id="rm"></div><div id="cmsgs" style="max-height:220px;overflow:auto;margin:10px 0"></div><div class="row"><input type="text" id="cin" placeholder="Message your friends"><button class="btn" id="csend" style="padding:13px 20px">Send</button></div><div class="row" style="margin-top:10px"><button class="btn ghost" id="vcall">📹 Video call</button></div><small style="color:var(--mut)">Chat is live only and is not saved.</small></div>
+    <div class="row" style="margin:10px 0"><button class="btn" id="rj">Join</button></div><div id="rm"></div><small style="color:var(--mut)">Chat and video are in the 💬 button.</small></div>
 </section>
 <nav id="nav"><button data-t="focus" class="on"><i>⏱</i>Focus</button><button data-t="lib"><i>📚</i>Library</button><button data-t="tasks"><i>✅</i>To-do</button><button data-t="more"><i>🧠</i>Tools</button><button data-t="me"><i>🌸</i>Me</button></nav>
 
@@ -290,14 +317,59 @@ $('#rj').onclick=()=>{
   S.name=name;save();if(ch)ch.unsubscribe();
   sb=sb||supabase.createClient(SB_URL,SB_KEY);
   ch=sb.channel('room:'+code,{config:{broadcast:{self:true},presence:{key:name+Math.random().toString(36).slice(2,5)}}});wire();
-  ch.on('presence',{event:'sync'},()=>{const p=Object.values(ch.presenceState()).flat();$('#rm').innerHTML=p.map(m=>`<div class="task"><span>${esc(m.name)}</span><b>${m.on?'🔥 focusing':'☕ '+(m.mode==='focus'?'idle':'break')}</b></div>`).join('')}).subscribe(s=>{if(s==='SUBSCRIBED'){ping();toast('Joined '+code)}})
+  ch.on('presence',{event:'sync'},()=>{const p=Object.values(ch.presenceState()).flat();$('#rm').innerHTML=p.map(m=>`<div class="task"><span>${esc(m.name)}</span><b>${m.on?'🔥 focusing':'☕ '+(m.mode==='focus'?'idle':'break')}</b></div>`).join('')}).subscribe(s=>{if(s==='SUBSCRIBED'){ping();toast('Joined '+code);$('#pt').textContent='# '+code;chatUI()}})
 };
 /* onboarding + chat + video */
-$('#ob').onclick=e=>{const b=e.target.closest('[data-v]');if(b){S.vibe=b.dataset.v;save();render()}};
+let un=0;const pn=$('#panel');
+$('#ob').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const n=$('#sn').value.trim();if(!n)return toast('Add your name first');S.name=n;S.vibe=b.dataset.v;$('#rn').value=n;save();render()};
+function chatUI(){const j=ch&&ch.state==='joined';$('#pj').style.display=j?'none':'block';$('#cmsgs').style.display=j?'block':'none';$('#cbar').style.display=j?'flex':'none';if(!$('#jn').value)$('#jn').value=S.name||''}
+$('#fab').onclick=()=>{pn.classList.add('on');un=0;$('#bd').style.display='none';$('#fab').style.display='none';chatUI()};
+$('#pc').onclick=()=>{pn.classList.remove('on','max');$('#pm').textContent='⤢';$('#fab').style.display='block'};
+$('#pm').onclick=()=>{pn.classList.toggle('max');$('#pm').textContent=pn.classList.contains('max')?'⤡':'⤢'};
+$('#jb').onclick=()=>{$('#rn').value=$('#jn').value;$('#rc').value=$('#jc').value;$('#rj').click()};
+function hudSub(){const n=S.today.d===day()?S.today.n:0,nm=S.name?S.name+', ':'',AF=['you are doing better than you think.','small steps still count.','focus now, glow later.','rest is part of the plan.','one session at a time.'];
+ let s=vb()==='girl'?nm+AF[new Date().getDate()%5]:vb()==='boy'?'Daily quest: '+Math.min(3,n)+'/3 sessions':nm+'pick a task, hit start.';$('#sub').textContent=s[0].toUpperCase()+s.slice(1);
+ const hd=$('#hud');hd.style.display=vb()==='boy'?'block':'none';
+ if(vb()==='boy')hd.innerHTML=`<b>LVL ${Math.floor(S.xp/100)+1}</b> · ${S.xp%100}/100 xp<div class="bar"><i style="width:${S.xp%100}%"></i></div><small style="color:var(--mut)">${streak()}🔥 day streak</small>`}
+/* 3D stage */
+let T={v:'',bump:0,ry:0,drag:0,w:0};
+function init3d(){
+  if(!window.THREE)return;const W=THREE,el=$('#stage'),r=new W.WebGLRenderer({antialias:true,alpha:true});
+  r.setPixelRatio(Math.min(2,devicePixelRatio));el.appendChild(r.domElement);document.body.classList.add('has3d');
+  const sc=new W.Scene(),cam=new W.PerspectiveCamera(40,1,.1,50);cam.position.set(0,.4,7);
+  sc.add(new W.AmbientLight(0xffffff,.75));const dl=new W.DirectionalLight(0xffffff,.9);dl.position.set(3,5,5);sc.add(dl);
+  const M=c=>new W.MeshStandardMaterial({color:c,roughness:.45,metalness:.1});
+  function build(v){
+    const g=new W.Group(),add=(geo,c,x,y,z,to)=>{const m=new W.Mesh(geo,M(c));m.position.set(x,y,z);(to||g).add(m);return m};
+    if(v==='boy'){add(new W.CylinderGeometry(.55,.55,2,24),0xe8f1ff,0,0,0);add(new W.ConeGeometry(.55,.9,24),0xff9f1c,0,1.45,0);add(new W.SphereGeometry(.26,20,20),0x4da3ff,0,.35,.5);
+      for(let i=0;i<3;i++){const a=i*2.094,f=add(new W.BoxGeometry(.1,.8,.6),0xff9f1c,Math.sin(a)*.62,-.8,Math.cos(a)*.62);f.rotation.y=a}
+      T.fl=add(new W.ConeGeometry(.35,1,16),0xffd166,0,-1.5,0);T.fl.rotation.x=Math.PI}
+    else if(v==='other'){add(new W.CylinderGeometry(.2,.28,1.2,16),0x8b5a2b,0,-1,0);[[1.1,-.4],[.85,.3],[.55,.9]].forEach(a=>add(new W.ConeGeometry(a[0],1,20),0x3ddc97,0,a[1]+.4,0))}
+    else{add(new W.CylinderGeometry(.6,.45,.7,24),0xff9ec4,0,-1.5,0);add(new W.CylinderGeometry(.06,.06,2.2,12),0x6be3a5,0,-.2,0);
+      const hd=new W.Group();hd.position.y=1;hd.rotation.x=-.6;g.add(hd);
+      for(let i=0;i<8;i++){const a=i*Math.PI/4,p=add(new W.SphereGeometry(.3,16,12),i%2?0xffb4a2:0xb9a4ff,Math.cos(a)*.55,Math.sin(a)*.55,0,hd);p.scale.set(1.3,.6,.5);p.rotation.z=a}
+      add(new W.SphereGeometry(.3,16,16),0xffe066,0,0,.12,hd);
+      [-1,1].forEach(s=>{const l=add(new W.SphereGeometry(.3,12,10),0x6be3a5,s*.45,-.5,0);l.scale.set(1.5,.45,.4);l.rotation.z=s*.5})}
+    return g}
+  const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;let lx;
+  el.addEventListener('pointerdown',e=>{T.drag=1;T.moved=0;lx=e.clientX});
+  addEventListener('pointermove',e=>{if(T.drag){const d=e.clientX-lx;T.ry+=d*.012;if(Math.abs(d)>2)T.moved=1;lx=e.clientX}});
+  addEventListener('pointerup',()=>{if(T.drag&&!T.moved)T.bump=1;T.drag=0});addEventListener('pointercancel',()=>{T.drag=0});
+  (function loop(t){requestAnimationFrame(loop);const w=el.clientWidth;if(!w)return;
+    if(w!==T.w){T.w=w;r.setSize(w,190,false);cam.aspect=w/190;cam.updateProjectionMatrix()}
+    if(T.v!==vb()){if(T.g)sc.remove(T.g);T.v=vb();T.g=build(T.v);sc.add(T.g)}
+    const p=(mode==='focus'&&tick)?1-left/len(mode):0;
+    if(!T.drag&&!rm)T.ry+=.008;T.bump*=.92;T.g.rotation.y=T.ry;
+    if(T.v==='boy'){T.g.scale.setScalar(.8);T.g.position.y=-.4+p*.9+T.bump*.6+Math.sin(t/400)*.05;T.fl.visible=!!tick;T.fl.scale.y=1+Math.sin(t/50)*.25}
+    else{T.g.scale.setScalar(.7+.45*p+T.bump*.2);T.g.position.y=-.1+Math.sin(t/700)*.05}
+    r.render(sc,cam)})(0)}
+const _r2=render;render=function(){_r2();hudSub()};
+init3d();render();
+/* PWA */
 const ME=Math.random().toString(36).slice(2,8);let pc,ls,pend=[];
 const sig=d=>ch&&ch.send({type:'broadcast',event:'sig',payload:{f:ME,...d}});
 function wire(){
-  ch.on('broadcast',{event:'msg'},({payload:p})=>{const m=$('#cmsgs');m.insertAdjacentHTML('beforeend',`<div class="task"><span><b>${esc(p.n)}</b> ${esc(p.t)}</span></div>`);m.scrollTop=m.scrollHeight});
+  ch.on('broadcast',{event:'msg'},({payload:p})=>{const m=$('#cmsgs'),me=p.f===ME;m.insertAdjacentHTML('beforeend',`<div class="mb ${me?'me':''}"><small>${esc(p.n)}</small>${esc(p.t)}</div>`);m.scrollTop=m.scrollHeight;if(!me&&!$('#panel').classList.contains('on')){un++;$('#bd').textContent=un;$('#bd').style.display='block'}});
   ch.on('broadcast',{event:'sig'},async({payload:p})=>{if(p.f===ME)return;
     if(p.o){if(!confirm('A friend is calling. Answer?'))return;await mkpc();await pc.setRemoteDescription(p.o);await flush();const a=await pc.createAnswer();await pc.setLocalDescription(a);sig({a})}
     else if(p.a&&pc){await pc.setRemoteDescription(p.a);await flush()}
@@ -310,8 +382,8 @@ async function mkpc(){
   ls.getTracks().forEach(t=>pc.addTrack(t,ls));pc.ontrack=e=>{$('#rv').srcObject=e.streams[0]};pc.onicecandidate=e=>e.candidate&&sig({c:e.candidate})}
 function hang(remote){pc&&pc.close();ls&&ls.getTracks().forEach(t=>t.stop());pc=null;ls=null;$('#vid').style.display='none';if(!remote)sig({bye:1})}
 $('#hang').onclick=()=>hang();
-$('#vcall').onclick=async()=>{if(!ch||ch.state!=='joined')return toast('Join a room first');try{await mkpc();const o=await pc.createOffer();await pc.setLocalDescription(o);sig({o});toast('Calling…')}catch(e){hang(true);toast('Camera or mic blocked')}};
-const sendMsg=()=>{const t=$('#cin').value.trim();if(t&&ch&&ch.state==='joined'){ch.send({type:'broadcast',event:'msg',payload:{n:S.name,t}});$('#cin').value=''}else if(t)toast('Join a room first')};
+$('#pv').onclick=async()=>{if(!ch||ch.state!=='joined')return toast('Join a room first');try{await mkpc();const o=await pc.createOffer();await pc.setLocalDescription(o);sig({o});toast('Calling…')}catch(e){hang(true);toast('Camera or mic blocked')}};
+const sendMsg=()=>{const t=$('#cin').value.trim();if(t&&ch&&ch.state==='joined'){ch.send({type:'broadcast',event:'msg',payload:{f:ME,n:S.name,t}});$('#cin').value=''}else if(t)toast('Join a room first')};
 $('#csend').onclick=sendMsg;$('#cin').onkeydown=e=>{if(e.key==='Enter')sendMsg()};
 /* PWA */
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
