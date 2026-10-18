@@ -65,10 +65,20 @@ label.s input{width:64px;background:var(--card);border:1px solid var(--line);col
 .wk{display:flex;gap:8px;align-items:flex-end;height:110px;margin-top:12px}.wk div{flex:1;text-align:center;font-size:11px;color:var(--mut)}.wk i{display:block;border-radius:8px 8px 4px 4px;background:linear-gradient(var(--b),var(--a));min-height:4px;margin-bottom:4px}
 .fc{min-height:130px;display:grid;place-items:center;text-align:center;font:700 22px "Bricolage Grotesque";padding:16px;margin:12px 0;border-radius:24px;background:color-mix(in srgb,var(--a) 20%,transparent);cursor:pointer}
 textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:18px;padding:13px 16px;font:16px "DM Sans";margin:8px 0}input[type=date]{width:auto}
+.ob{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;flex-direction:column;justify-content:center;padding:24px;gap:14px;text-align:center}
+.ob button{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:28px;padding:22px;font:700 20px "Bricolage Grotesque"}
+:root[data-vibe="boy"]{--a:#4da3ff;--b:#ff9f1c;--c:#b6ff3b;--on:#06101f}
+:root[data-vibe="other"]{--a:#5eead4;--b:#fbbf24;--c:#a3e635;--on:#06201c}
+@media (prefers-color-scheme:dark){:root[data-vibe="boy"]:not([data-theme="light"]){--bg:#0a1020;--bg2:#0f2a52}:root[data-vibe="other"]:not([data-theme="light"]){--bg:#0d1a1a;--bg2:#123533}}
+:root[data-vibe="boy"][data-theme="dark"]{--bg:#0a1020;--bg2:#0f2a52}:root[data-vibe="other"][data-theme="dark"]{--bg:#0d1a1a;--bg2:#123533}
+#cmsgs .task{padding:6px 0}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
+<div class="ob" id="ob"><h1 style="font-size:32px">Pick your vibe</h1><p class="hi" style="margin:0 0 8px">This sets your colors and rewards. You can change it later in Me.</p>
+<button data-v="girl">👧 Girl</button><button data-v="boy">👦 Boy</button><button data-v="other">✨ Skip / neutral</button></div>
+<div id="vid" style="display:none;position:fixed;inset:0;z-index:40;background:#000;flex-direction:column"><video id="rv" autoplay playsinline style="flex:1;width:100%;object-fit:cover;min-height:0"></video><video id="lv" autoplay playsinline muted style="position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top,0px));width:100px;border-radius:16px"></video><button class="btn" id="hang" style="margin:16px auto calc(24px + env(safe-area-inset-bottom,0px));background:#ff5d5d;color:#fff">End call</button></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <main>
 <section id="focus" class="on">
@@ -98,7 +108,7 @@ textarea{width:100%;background:var(--card);border:1px solid var(--line);color:va
 </section>
 
 <section id="me">
-  <h1>Your garden 🌸</h1><p class="hi" id="lvl"></p>
+  <h1 id="mh">Your garden 🌸</h1><p class="hi" id="lvl"></p>
   <div class="card"><b id="lvt"></b><div class="bar"><i id="lvb" style="width:0"></i></div><small style="color:var(--mut)" id="lvs"></small></div>
   <div class="card"><b>Timer lengths (minutes)</b>
     <label class="s">Focus<input type="number" id="cf" min="1" max="120"></label>
@@ -119,14 +129,18 @@ textarea{width:100%;background:var(--card);border:1px solid var(--line);color:va
     <textarea id="fcin" rows="3" placeholder="Paste notes, one per line: Term: definition"></textarea><div class="row"><button class="btn ghost" id="fcmk">Make cards</button><button class="btn" id="fcgo">Review</button></div></div>
   <div class="card"><b>Study room</b><p class="hi" style="margin:4px 0 10px">Share a code with friends and see who is focusing.</p>
     <div class="row"><input type="text" id="rn" placeholder="Your name"><input type="text" id="rc" placeholder="Room code"></div>
-    <div class="row" style="margin:10px 0"><button class="btn" id="rj">Join</button></div><div id="rm"></div></div>
+    <div class="row" style="margin:10px 0"><button class="btn" id="rj">Join</button></div><div id="rm"></div><div id="cmsgs" style="max-height:220px;overflow:auto;margin:10px 0"></div><div class="row"><input type="text" id="cin" placeholder="Message your friends"><button class="btn" id="csend" style="padding:13px 20px">Send</button></div><div class="row" style="margin-top:10px"><button class="btn ghost" id="vcall">📹 Video call</button></div><small style="color:var(--mut)">Chat is live only and is not saved.</small></div>
 </section>
 <nav id="nav"><button data-t="focus" class="on"><i>⏱</i>Focus</button><button data-t="lib"><i>📚</i>Library</button><button data-t="tasks"><i>✅</i>To-do</button><button data-t="more"><i>🧠</i>Tools</button><button data-t="me"><i>🌸</i>Me</button></nav>
 
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const DEF={cf:25,cs:5,cl:15,snd:true,xp:0,sessions:0,days:[],today:{d:'',n:0},garden:'',log:{},exams:[],cards:[],name:'',subs:['General','Maths','Science'],tasks:[],accent:0};
-let S;try{S={...DEF,...JSON.parse(localStorage.getItem('bloom')||'{}')}}catch(e){S={...DEF}}
+let S;try{S={vibe:'',...DEF,...JSON.parse(localStorage.getItem('bloom')||'{}')}}catch(e){S={...DEF}}
+const V={girl:{g:['Late night, legend 🌙','Morning, bloom time ☀️','Afternoon focus 🌿','Evening session 🌙'],p:['🌱','🌿','🪴','🌸'],t:['🌸','🌷','🌻','🌼','🪻','🌺'],h:'Your garden 🌸',ge:'Finish a focus session to plant your first flower.'},
+boy:{g:['Late night grind 🌙','Morning, lock in ☀️','Afternoon, level up ⚡','Evening session 🎯'],p:['🔋','⚡','🚀','🏆'],t:['🏆','🥇','⚡','🔥','🎯','🚀'],h:'Your trophy room 🏆',ge:'Finish a focus session to earn your first trophy.'},
+other:{g:['Late night focus 🌙','Good morning ☀️','Afternoon focus 🌿','Evening session 🌙'],p:['🌱','🌲','🌳','🍎'],t:['🌳','🍎','⭐','🌲','🍀','🌟'],h:'Your forest 🌳',ge:'Finish a focus session to grow your first tree.'}};
+const vb=()=>S.vibe||'girl';
 const save=()=>{try{localStorage.setItem('bloom',JSON.stringify(S))}catch(e){}};
 const day=()=>new Date().toDateString();
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)};
@@ -149,7 +163,7 @@ function draw(){
   $('#prog').style.stroke=mode==='focus'?'var(--a)':mode==='short'?'var(--c)':'var(--b)';
   $('#lab').textContent=mode==='focus'?'focus':'break';
   $$('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode));
-  $('#plant').textContent=mode!=='focus'?'☕':!tick?'🌱':left/len(mode)>.5?'🌿':left/len(mode)>.15?'🪴':'🌸';
+  {const p=V[vb()].p;$('#plant').textContent=mode!=='focus'?'☕':!tick?p[0]:left/len(mode)>.5?p[1]:left/len(mode)>.15?p[2]:p[3]}
 }
 function beep(){if(!S.snd)return;try{const a=new(window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach((t,i)=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=[523,659,784][i];o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+.4);o.start(a.currentTime+t);o.stop(a.currentTime+t+.45)})}catch(e){}}
 function done(){
@@ -158,7 +172,7 @@ function done(){
     S.sessions++;S.xp+=25;const d=day();S.log[d]=(S.log[d]||0)+S.cf;
     if(S.today.d!==d)S.today={d,n:0};S.today.n++;
     if(!S.days.includes(d))S.days.push(d);
-    S.garden+=['🌸','🌷','🌻','🌼','🪻','🌺'][S.sessions%6];save();
+    S.garden+=V[vb()].t[S.sessions%6];save();
     toast('Session done! +25 xp 🌸');cycle++;setMode(cycle%4===0?'long':'short')
   }else{toast('Break over. Ready?');setMode('focus')}
   render()
@@ -215,23 +229,23 @@ $('#tl').onclick=e=>{
 /* me / settings */
 const ACC=[['Lilac',null],['Peach',['#ffb4a2','#ffd0c4']],['Mint',['#9ff0d0','#c9ffe8']],['Sky',['#8fc7ff','#c4e2ff']]];
 function applyAcc(){const a=ACC[S.accent][1];const r=document.documentElement.style;if(a){r.setProperty('--a',a[0])}else r.removeProperty('--a');draw()}
-$('#themes').innerHTML=ACC.map((a,i)=>`<button class="chip" data-a="${i}">${a[0]}</button>`).join('')+'<button class="chip" data-th="dark">🌙 Dark</button><button class="chip" data-th="light">☀️ Light</button>';
+$('#themes').innerHTML=ACC.map((a,i)=>`<button class="chip" data-a="${i}">${a[0]}</button>`).join('')+'<button class="chip" data-th="dark">🌙 Dark</button><button class="chip" data-th="light">☀️ Light</button><button class="chip" data-v="girl">👧 Girl</button><button class="chip" data-v="boy">👦 Boy</button><button class="chip" data-v="other">✨ Neutral</button>';
 $('#themes').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.a){S.accent=+b.dataset.a;applyAcc()}
-  if(b.dataset.th)document.documentElement.dataset.theme=b.dataset.th;save()};
+  if(b.dataset.v){S.vibe=b.dataset.v;render()}if(b.dataset.th)document.documentElement.dataset.theme=b.dataset.th;save()};
 [['cf','#cf'],['cs','#cs'],['cl','#cl']].forEach(([k,s])=>{$(s).value=S[k];$(s).onchange=()=>{S[k]=Math.min(120,Math.max(1,+$(s).value||DEF[k]));save();if(!tick)setMode(mode)}});
 $('#snd').checked=S.snd;$('#snd').onchange=()=>{S.snd=$('#snd').checked;save()};
 
 function render(){
   const h=new Date().getHours();
-  $('#greet').textContent=(h<5?'Late night, legend 🌙':h<12?'Morning, bloom time ☀️':h<18?'Afternoon focus 🌿':'Evening session 🌙');
+  {const g=V[vb()].g;$('#greet').textContent=g[h<5?0:h<12?1:h<18?2:3]}document.documentElement.dataset.vibe=vb();$('#ob').style.display=S.vibe?'none':'flex';$('#mh').textContent=V[vb()].h;
   $('#sToday').textContent=S.today.d===day()?S.today.n:0;
   const st=streak();$('#sStreak').textContent=st+'🔥';$('#sXp').textContent=S.xp;
   const lv=Math.floor(S.xp/100)+1;
   $('#lvt').textContent='Level '+lv;$('#lvb').style.width=(S.xp%100)+'%';
   $('#lvs').textContent=(100-S.xp%100)+' xp to level '+(lv+1)+' · '+S.sessions+' sessions total';
   $('#lvl').textContent=st?`${st}-day streak. Keep it going!`:'Start a session to begin your streak.';
-  if(S.garden)$('#garden').textContent=S.garden;
+  $('#garden').textContent=S.garden||V[vb()].ge;
   renderTasks();renderLib();draw()
 }
 applyAcc();render();
@@ -275,9 +289,30 @@ $('#rj').onclick=()=>{
   if(!SB_URL||!window.supabase)return toast('Supabase keys not set yet');
   S.name=name;save();if(ch)ch.unsubscribe();
   sb=sb||supabase.createClient(SB_URL,SB_KEY);
-  ch=sb.channel('room:'+code,{config:{presence:{key:name+Math.random().toString(36).slice(2,5)}}});
+  ch=sb.channel('room:'+code,{config:{broadcast:{self:true},presence:{key:name+Math.random().toString(36).slice(2,5)}}});wire();
   ch.on('presence',{event:'sync'},()=>{const p=Object.values(ch.presenceState()).flat();$('#rm').innerHTML=p.map(m=>`<div class="task"><span>${esc(m.name)}</span><b>${m.on?'🔥 focusing':'☕ '+(m.mode==='focus'?'idle':'break')}</b></div>`).join('')}).subscribe(s=>{if(s==='SUBSCRIBED'){ping();toast('Joined '+code)}})
 };
+/* onboarding + chat + video */
+$('#ob').onclick=e=>{const b=e.target.closest('[data-v]');if(b){S.vibe=b.dataset.v;save();render()}};
+const ME=Math.random().toString(36).slice(2,8);let pc,ls,pend=[];
+const sig=d=>ch&&ch.send({type:'broadcast',event:'sig',payload:{f:ME,...d}});
+function wire(){
+  ch.on('broadcast',{event:'msg'},({payload:p})=>{const m=$('#cmsgs');m.insertAdjacentHTML('beforeend',`<div class="task"><span><b>${esc(p.n)}</b> ${esc(p.t)}</span></div>`);m.scrollTop=m.scrollHeight});
+  ch.on('broadcast',{event:'sig'},async({payload:p})=>{if(p.f===ME)return;
+    if(p.o){if(!confirm('A friend is calling. Answer?'))return;await mkpc();await pc.setRemoteDescription(p.o);await flush();const a=await pc.createAnswer();await pc.setLocalDescription(a);sig({a})}
+    else if(p.a&&pc){await pc.setRemoteDescription(p.a);await flush()}
+    else if(p.c){pc&&pc.remoteDescription?await pc.addIceCandidate(p.c):pend.push(p.c)}
+    else if(p.bye)hang(true)})}
+async function flush(){for(const c of pend)await pc.addIceCandidate(c);pend=[]}
+async function mkpc(){
+  ls=await navigator.mediaDevices.getUserMedia({video:true,audio:true});$('#lv').srcObject=ls;$('#vid').style.display='flex';
+  pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+  ls.getTracks().forEach(t=>pc.addTrack(t,ls));pc.ontrack=e=>{$('#rv').srcObject=e.streams[0]};pc.onicecandidate=e=>e.candidate&&sig({c:e.candidate})}
+function hang(remote){pc&&pc.close();ls&&ls.getTracks().forEach(t=>t.stop());pc=null;ls=null;$('#vid').style.display='none';if(!remote)sig({bye:1})}
+$('#hang').onclick=()=>hang();
+$('#vcall').onclick=async()=>{if(!ch||ch.state!=='joined')return toast('Join a room first');try{await mkpc();const o=await pc.createOffer();await pc.setLocalDescription(o);sig({o});toast('Calling…')}catch(e){hang(true);toast('Camera or mic blocked')}};
+const sendMsg=()=>{const t=$('#cin').value.trim();if(t&&ch&&ch.state==='joined'){ch.send({type:'broadcast',event:'msg',payload:{n:S.name,t}});$('#cin').value=''}else if(t)toast('Join a room first')};
+$('#csend').onclick=sendMsg;$('#cin').onkeydown=e=>{if(e.key==='Enter')sendMsg()};
 /* PWA */
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
